@@ -156,45 +156,124 @@ npm start
 
 --
 
-## 📡 API 文档
+## 📡 完整 API 接口文档
 
 ### 基础信息
 
 - **Base URL**: `http://localhost:3000`
 - **认证方式**: Bearer Token（在 `Authorization` 头中传递 `API_KEY`）
+- **Content-Type**: `application/json`
 
-### 端点列表
+---
 
-#### 1. 聊天完成（Chat Completions）
+### 📋 API 接口总览表
 
-**标准模式**
+| 分类 | 端点 | 方法 | 认证 | 功能 |
+|------|------|------|------|------|
+| **聊天** | `/v1/chat/completions` | POST | ✅ | 标准聊天完成（支持文本/搜索/图片/视频） |
+| **聊天** | `/cli/v1/chat/completions` | POST | ✅ | CLI 聊天完成（高级功能，限 2000 次/天） |
+| **模型** | `/v1/models` | GET | ✅ | 获取标准模型列表 |
+| **模型** | `/models` | GET | ❌ | 获取模型列表（公开端点） |
+| **模型** | `/cli/v1/models` | POST | ❌ | 获取 CLI 模型列表 |
+| **账户** | `/api/addAccount` | POST | ✅ | 添加新账户 |
+| **账户** | `/api/accountsHealth` | GET | ✅ | 查看账户健康状态 |
+| **配置** | `/api/reloadConfig` | POST | ✅ | 手动重载配置 |
+| **配置** | `/api/configStatus` | GET | ✅ | 获取配置状态 |
+| **验证** | `/verify` | POST | ❌ | 验证 API Key |
 
-```http
-POST /v1/chat/completions
+---
+
+## 1️⃣ 聊天完成接口
+
+### 1.1 标准聊天完成
+
+**端点**: `POST /v1/chat/completions`
+
+**认证**: 需要 API Key
+
+**功能**: 支持文本对话、联网搜索、图片生成、视频生成等多种模式
+
+**请求参数**:
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `model` | string | 是 | 模型名称（如 `qwen-max`、`qwen-plus`） |
+| `messages` | array | 是 | 对话消息列表 |
+| `stream` | boolean | 否 | 是否流式输出（默认 `false`） |
+| `temperature` | number | 否 | 温度参数（0-2，默认 0.7） |
+| `max_tokens` | number | 否 | 最大生成 token 数 |
+| `chat_type` | string | 否 | 聊天类型（`t2t`/`search`/`t2i`/`t2v`/`image_edit`） |
+
+**支持的聊天类型**:
+
+| chat_type | 说明 | 示例 |
+|-----------|------|------|
+| `t2t` | 文本对话（默认） | 普通对话、问答 |
+| `search` | 联网搜索 | 实时新闻、最新信息 |
+| `t2i` | 文本生成图片 | 图片创作、插画生成 |
+| `t2v` | 文本生成视频 | 视频创作 |
+| `image_edit` | 图片编辑 | 图片修改、风格转换 |
+
+**请求示例 - 文本对话**:
+
+```bash
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Authorization: Bearer sk-your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen-max",
+    "messages": [
+      {"role": "system", "content": "你是一个有帮助的助手"},
+      {"role": "user", "content": "介绍一下北京"}
+    ],
+    "stream": false,
+    "temperature": 0.7,
+    "max_tokens": 2000
+  }'
 ```
 
-**CLI 模式**（支持更多高级功能）
+**请求示例 - 联网搜索**:
 
-```http
-POST /cli/v1/chat/completions
+```bash
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Authorization: Bearer sk-your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen-max",
+    "messages": [{"role": "user", "content": "今天的新闻"}],
+    "chat_type": "search",
+    "stream": false
+  }'
 ```
 
-**请求示例**：
+**请求示例 - 图片生成**:
 
-```json
-{
-  "model": "qwen-max",
-  "messages": [
-    {"role": "system", "content": "你是一个有帮助的助手"},
-    {"role": "user", "content": "介绍一下北京"}
-  ],
-  "stream": false,
-  "temperature": 0.7,
-  "max_tokens": 2000
-}
+```bash
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Authorization: Bearer sk-your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen-max",
+    "messages": [{"role": "user", "content": "一只可爱的猫咪"}],
+    "chat_type": "t2i",
+    "stream": false
+  }'
 ```
 
-**响应示例**（非流式）：
+**请求示例 - 流式输出**:
+
+```bash
+curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Authorization: Bearer sk-your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen-max",
+    "messages": [{"role": "user", "content": "你好"}],
+    "stream": true
+  }'
+```
+
+**响应示例（非流式）**:
 
 ```json
 {
@@ -220,26 +299,71 @@ POST /cli/v1/chat/completions
 }
 ```
 
-**流式响应示例**：
+**响应示例（流式）**:
+
+```
+data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1696000000,"model":"qwen-max","choices":[{"index":0,"delta":{"role":"assistant","content":"你"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1696000000,"model":"qwen-max","choices":[{"index":0,"delta":{"content":"好"},"finish_reason":null}]}
+
+data: [DONE]
+```
+
+---
+
+### 1.2 CLI 聊天完成
+
+**端点**: `POST /cli/v1/chat/completions`
+
+**认证**: 需要 API Key
+
+**功能**: 使用 CLI 模式，支持更多高级功能，每个账户每天限制 2000 次请求
+
+**请求参数**: 与标准聊天完成相同
+
+**请求示例**:
 
 ```bash
-curl -X POST http://localhost:3000/v1/chat/completions \
+curl -X POST http://localhost:3000/cli/v1/chat/completions \
   -H "Authorization: Bearer sk-your-secret-key" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "qwen-max",
     "messages": [{"role": "user", "content": "你好"}],
-    "stream": true
+    "stream": false
   }'
 ```
 
-#### 2. 模型列表
+**响应示例**: 与标准聊天完成相同
 
-```http
-GET /v1/models
+**错误响应**（无可用 CLI 账户）:
+
+```json
+{
+  "error": "没有可用的CLI账户，请稍后重试"
+}
 ```
 
-**响应示例**：
+---
+
+## 2️⃣ 模型列表接口
+
+### 2.1 获取标准模型列表
+
+**端点**: `GET /v1/models`
+
+**认证**: 需要 API Key
+
+**功能**: 获取所有可用的 Qwen 模型列表
+
+**请求示例**:
+
+```bash
+curl http://localhost:3000/v1/models \
+  -H "Authorization: Bearer sk-your-secret-key"
+```
+
+**响应示例**:
 
 ```json
 {
@@ -248,78 +372,210 @@ GET /v1/models
     {
       "id": "qwen-max",
       "object": "model",
-      "created": 1696000000,
+      "created": 1719878112,
       "owned_by": "qwen"
     },
     {
       "id": "qwen-plus",
       "object": "model",
-      "created": 1696000000,
+      "created": 1719878112,
+      "owned_by": "qwen"
+    },
+    {
+      "id": "qwen-turbo",
+      "object": "model",
+      "created": 1719878112,
       "owned_by": "qwen"
     }
   ]
 }
 ```
 
-#### 3. cookie管理
+---
 
-**添加cookie**
+### 2.2 获取模型列表（无认证）
 
-```http
-POST /api/addAccount
+**端点**: `GET /models`
+
+**认证**: 不需要
+
+**功能**: 获取模型列表（公开端点）
+
+**请求示例**:
+
+```bash
+curl http://localhost:3000/models
 ```
 
-**请求示例**：
+**响应示例**: 与 `/v1/models` 相同
+
+---
+
+### 2.3 获取 CLI 模型列表
+
+**端点**: `POST /cli/v1/models`
+
+**认证**: 不需要
+
+**功能**: 获取 CLI 模式支持的模型列表
+
+**请求示例**:
+
+```bash
+curl -X POST http://localhost:3000/cli/v1/models
+```
+
+**响应示例**:
 
 ```json
 {
-  "num": "3",
-  "cookie": "token=xxx; ssxmod_itna=xxx"
+  "object": "list",
+  "data": [
+    {
+      "id": "qwen3-coder-plus",
+      "object": "model",
+      "created": 1719878112,
+      "owned_by": "qwen-code"
+    },
+    {
+      "id": "qwen3-coder-flash",
+      "object": "model",
+      "created": 1719878112,
+      "owned_by": "qwen-code"
+    }
+  ]
 }
 ```
 
-**删除cookie**
+---
 
-```http
-DELETE /api/deleteAccount/:num
+## 3️⃣ 账户管理接口
+
+### 3.1 添加账户
+
+**端点**: `POST /api/addAccount`
+
+**认证**: 需要 API Key
+
+**功能**: 动态添加新的 Qwen 账户
+
+**请求参数**:
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `num` | string | 是 | 账户编号（如 "1", "2", "3"） |
+| `cookie` | string | 是 | 完整的 Cookie 字符串 |
+
+**请求示例**:
+
+```bash
+curl -X POST http://localhost:3000/api/addAccount \
+  -H "Authorization: Bearer sk-your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "num": "3",
+    "cookie": "token=xxx; ssxmod_itna=yyy"
+  }'
 ```
 
-**查看cookie健康状态**
+**成功响应**:
 
-```http
-GET /api/health
+```json
+{
+  "success": true,
+  "message": "账户 #3 添加成功",
+  "account": {
+    "num": "3",
+    "accountId": "account_3",
+    "hasToken": true,
+    "expires": "2025-10-10 12:00:00"
+  }
+}
 ```
 
-**响应示例**：
+**失败响应**:
+
+```json
+{
+  "success": false,
+  "error": "添加账户失败（账户可能已存在或 Cookie 无效）"
+}
+```
+
+---
+
+### 3.2 查看账户健康状态
+
+**端点**: `GET /api/accountsHealth`
+
+**认证**: 需要 API Key
+
+**功能**: 获取所有账户的健康状态和统计信息
+
+**请求示例**:
+
+```bash
+curl http://localhost:3000/api/accountsHealth \
+  -H "Authorization: Bearer sk-your-secret-key"
+```
+
+**响应示例**:
 
 ```json
 {
   "success": true,
   "data": {
-    "totalAccounts": 2,
+    "totalAccounts": 3,
     "healthyAccounts": 2,
-    "unhealthyAccounts": 0,
+    "unhealthyAccounts": 1,
     "accounts": [
       {
         "accountId": "account_1",
         "isHealthy": true,
         "failureCount": 0,
-        "lastUsed": "2025-10-03T12:00:00.000Z"
+        "lastUsed": "2025-10-03T12:00:00.000Z",
+        "hasCliInfo": true,
+        "cliRequestNumber": 150
+      },
+      {
+        "accountId": "account_2",
+        "isHealthy": true,
+        "failureCount": 0,
+        "lastUsed": "2025-10-03T11:50:00.000Z",
+        "hasCliInfo": false
+      },
+      {
+        "accountId": "account_3",
+        "isHealthy": false,
+        "failureCount": 5,
+        "lastUsed": "2025-10-03T10:00:00.000Z",
+        "hasCliInfo": false
       }
     ]
   }
 }
 ```
 
-#### 4. 配置管理
+---
 
-**手动重载配置**
+## 4️⃣ 配置管理接口
 
-```http
-POST /api/reloadConfig
+### 4.1 手动重载配置
+
+**端点**: `POST /api/reloadConfig`
+
+**认证**: 需要 API Key
+
+**功能**: 手动触发配置文件（.env）重载，无需重启容器
+
+**请求示例**:
+
+```bash
+curl -X POST http://localhost:3000/api/reloadConfig \
+  -H "Authorization: Bearer sk-your-secret-key"
 ```
 
-**响应示例**：
+**成功响应**:
 
 ```json
 {
@@ -329,13 +585,108 @@ POST /api/reloadConfig
     "reloadedAt": "2025-10-03T12:00:00.000Z",
     "configStatus": {
       "lastReload": "2025-10-03T12:00:00.000Z",
-      "isWatching": true
+      "isWatching": true,
+      "envPath": "/app/.env"
     },
     "accountsHealth": {
       "totalAccounts": 2,
-      "healthyAccounts": 2
+      "healthyAccounts": 2,
+      "unhealthyAccounts": 0
     }
   }
+}
+```
+
+**无变化响应**:
+
+```json
+{
+  "success": false,
+  "message": "配置无变化或重载失败",
+  "data": {
+    "configStatus": {
+      "lastReload": "2025-10-03T11:00:00.000Z",
+      "isWatching": true
+    }
+  }
+}
+```
+
+---
+
+### 4.2 获取配置状态
+
+**端点**: `GET /api/configStatus`
+
+**认证**: 需要 API Key
+
+**功能**: 获取配置重载器的当前状态
+
+**请求示例**:
+
+```bash
+curl http://localhost:3000/api/configStatus \
+  -H "Authorization: Bearer sk-your-secret-key"
+```
+
+**响应示例**:
+
+```json
+{
+  "success": true,
+  "data": {
+    "lastReload": "2025-10-03T12:00:00.000Z",
+    "isWatching": true,
+    "envPath": "/app/.env",
+    "watcherActive": true
+  }
+}
+```
+
+---
+
+## 5️⃣ 验证接口
+
+### 5.1 验证 API Key
+
+**端点**: `POST /verify`
+
+**认证**: 不需要（在请求体中传递 API Key）
+
+**功能**: 验证 API Key 是否有效
+
+**请求参数**:
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `apiKey` | string | 是 | 要验证的 API Key |
+
+**请求示例**:
+
+```bash
+curl -X POST http://localhost:3000/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "apiKey": "sk-your-secret-key"
+  }'
+```
+
+**成功响应**:
+
+```json
+{
+  "status": 200,
+  "message": "success",
+  "isAdmin": false
+}
+```
+
+**失败响应**:
+
+```json
+{
+  "status": 401,
+  "message": "Unauthorized"
 }
 ```
 
