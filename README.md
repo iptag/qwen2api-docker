@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/badge/version-2025.09.30-blue.svg)](https://github.com/yourusername/qwen2api)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/license-ISC-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > 将通义千问（Qwen）API 转换为 OpenAI 兼容格式的代理服务，支持多账户轮询、Cookie 热重载、CLI 模式等高级功能。
 
