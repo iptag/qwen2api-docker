@@ -111,7 +111,7 @@ curl -X POST http://localhost:3000/v1/chat/completions \
   -H "Authorization: Bearer sk-your-secret-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen-max",
+    "model": "qwen3-max",
     "messages": [{"role": "user", "content": "你好"}],
     "stream": false
   }'
@@ -220,7 +220,7 @@ npm start
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `model` | string | 是 | 模型名称（如 `qwen-max`、`qwen-plus`） |
+| `model` | string | 是 | 模型名称（如 `qwen3-max`、`qwen-plus`） |
 | `messages` | array | 是 | 对话消息列表 |
 | `stream` | boolean | 否 | 是否流式输出（默认 `false`） |
 | `temperature` | number | 否 | 温度参数（0-2，默认 0.7） |
@@ -244,7 +244,7 @@ curl -X POST http://localhost:3000/v1/chat/completions \
   -H "Authorization: Bearer sk-your-secret-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen-max",
+    "model": "qwen3-max",
     "messages": [
       {"role": "system", "content": "你是一个有帮助的助手"},
       {"role": "user", "content": "介绍一下北京"}
@@ -262,7 +262,7 @@ curl -X POST http://localhost:3000/v1/chat/completions \
   -H "Authorization: Bearer sk-your-secret-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen-max",
+    "model": "qwen3-max",
     "messages": [{"role": "user", "content": "今天的新闻"}],
     "chat_type": "search",
     "stream": false
@@ -276,7 +276,7 @@ curl -X POST http://localhost:3000/v1/chat/completions \
   -H "Authorization: Bearer sk-your-secret-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen-max",
+    "model": "qwen3-max",
     "messages": [{"role": "user", "content": "一只可爱的猫咪"}],
     "chat_type": "t2i",
     "stream": false
@@ -290,7 +290,7 @@ curl -X POST http://localhost:3000/v1/chat/completions \
   -H "Authorization: Bearer sk-your-secret-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen-max",
+    "model": "qwen3-max",
     "messages": [{"role": "user", "content": "你好"}],
     "stream": true
   }'
@@ -303,7 +303,7 @@ curl -X POST http://localhost:3000/v1/chat/completions \
   "id": "chatcmpl-xxx",
   "object": "chat.completion",
   "created": 1696000000,
-  "model": "qwen-max",
+  "model": "qwen3-max",
   "choices": [
     {
       "index": 0,
@@ -325,9 +325,9 @@ curl -X POST http://localhost:3000/v1/chat/completions \
 **响应示例（流式）**:
 
 ```
-data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1696000000,"model":"qwen-max","choices":[{"index":0,"delta":{"role":"assistant","content":"你"},"finish_reason":null}]}
+data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1696000000,"model":"qwen3-max","choices":[{"index":0,"delta":{"role":"assistant","content":"你"},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1696000000,"model":"qwen-max","choices":[{"index":0,"delta":{"content":"好"},"finish_reason":null}]}
+data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1696000000,"model":"qwen3-max","choices":[{"index":0,"delta":{"content":"好"},"finish_reason":null}]}
 
 data: [DONE]
 ```
@@ -351,7 +351,7 @@ curl -X POST http://localhost:3000/cli/v1/chat/completions \
   -H "Authorization: Bearer sk-your-secret-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen-max",
+    "model": "qwen3-max",
     "messages": [{"role": "user", "content": "你好"}],
     "stream": false
   }'
@@ -393,7 +393,7 @@ curl http://localhost:3000/v1/models \
   "object": "list",
   "data": [
     {
-      "id": "qwen-max",
+      "id": "qwen3-max",
       "object": "model",
       "created": 1719878112,
       "owned_by": "qwen"
@@ -803,7 +803,7 @@ curl -X POST http://localhost:3000/cli/v1/chat/completions \
   -H "Authorization: Bearer sk-your-secret-key" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "qwen-max",
+    "model": "qwen3-max",
     "messages": [{"role": "user", "content": "搜索最新的 AI 新闻"}],
     "stream": false
   }'
