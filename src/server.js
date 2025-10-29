@@ -38,8 +38,7 @@ app.get('/', (req, res) => {
       accounts_health: '/api/accountsHealth',
       reload_config: '/api/reloadConfig',
       config_status: '/api/configStatus'
-    },
-    documentation: 'https://github.com/Rfym21/Qwen2API'
+    }
   })
 })
 

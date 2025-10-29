@@ -52,6 +52,7 @@ docker run -d \
   -v /root/qwen2api/data:/app/data \
   -v /root/qwen2api/.env:/app/.env:ro \
   --env-file /root/qwen2api/.env \
+  --no-healthcheck \
   ghcr.io/iptag/qwen2api-docker:latest
 ```
 
