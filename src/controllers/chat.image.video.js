@@ -66,7 +66,7 @@ const handleImageVideoCompletion = async (req, res) => {
             for (const item of messagesHistory) {
                 if (item.role == "assistant") {
                     // 使用matchAll提取所有图片链接
-                    const matches = [...item.content.matchAll(/!\\[image\\]\((.*?)\\) /g)]
+                    const matches = [...item.content.matchAll(/!\[image\]\((.*?)\)/g)]
                     // 将所有匹配到的图片url添加到图片列表
                     for (const match of matches) {
                         select_image_list.push(match[1])
