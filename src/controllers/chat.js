@@ -240,7 +240,7 @@ const handleStreamResponse = async (res, response, enable_thinking, enable_web_s
 const handleNonStreamResponse = async (res, response, enable_thinking, enable_web_search, model, requestBody = null) => {
     try {
         // console.log(JSON.stringify(response))
-        const content = response.data.choices[0].message.content
+        const content = response.choices[0].message.content
 
         // 提取prompt文本用于token估算
         let promptText = ''
