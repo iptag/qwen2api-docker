@@ -3,6 +3,11 @@ const config = require('../config/index.js')
 const accountManager = require('./account.js')
 const { logger } = require('./logger')
 
+const getCookieValue = (cookieString, key) => {
+    const match = cookieString.match(new RegExp(`${key}=([^;]+)`));
+    return match ? match[1] : null;
+};
+
 
 /**
  * 发送聊天请求
@@ -22,13 +27,16 @@ const sendChatRequest = async (body) => {
             }
         }
 
+        const ssxmodItna = getCookieValue(config.qwenCookies, 'ssxmod_itna');
+        const ssxmodItna2 = getCookieValue(config.qwenCookies, 'ssxmod_itna2');
+
         // 构建请求配置
         const requestConfig = {
             headers: {
                 'Authorization': `Bearer ${currentToken}`,
                 'Content-Type': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                ...(config.ssxmodItna && { 'Cookie': `ssxmod_itna=${config.ssxmodItna}` })
+                ...(ssxmodItna && ssxmodItna2 && { 'Cookie': `ssxmod_itna=${ssxmodItna};ssxmod_itna2=${ssxmodItna2}` })
             },
             responseType: body.stream ? 'stream' : 'json',
             timeout: 60 * 1000,
@@ -72,6 +80,9 @@ const sendChatRequest = async (body) => {
  */
 const generateChatID = async (currentToken,model) => {
     try {
+        const ssxmodItna = getCookieValue(config.qwenCookies, 'ssxmod_itna');
+        const ssxmodItna2 = getCookieValue(config.qwenCookies, 'ssxmod_itna2');
+
         const response_data = await axios.post("https://chat.qwen.ai/api/v2/chats/new", {
             "title": "New Chat",
             "models": [
@@ -85,7 +96,7 @@ const generateChatID = async (currentToken,model) => {
                 'Authorization': `Bearer ${currentToken}`,
                 'Content-Type': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                ...(config.ssxmodItna && { 'Cookie': `ssxmod_itna=${config.ssxmodItna}` })
+                ...(ssxmodItna && ssxmodItna2 && { 'Cookie': `ssxmod_itna=${ssxmodItna};ssxmod_itna2=${ssxmodItna2}` })
             }
         })
 

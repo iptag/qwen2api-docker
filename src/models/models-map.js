@@ -5,6 +5,11 @@ const config = require('../config/index.js')
 let cachedModels = null
 let fetchPromise = null
 
+const getCookieValue = (cookieString, key) => {
+    const match = cookieString.match(new RegExp(`${key}=([^;]+)`));
+    return match ? match[1] : null;
+};
+
 const getLatestModels = async (force = false) => {
     // 如果有缓存且不强制刷新，直接返回
     if (cachedModels && !force) {
@@ -15,13 +20,16 @@ const getLatestModels = async (force = false) => {
     if (fetchPromise) {
         return fetchPromise
     }
+
+    const ssxmodItna = getCookieValue(config.qwenCookies, 'ssxmod_itna');
+    const ssxmodItna2 = getCookieValue(config.qwenCookies, 'ssxmod_itna2');
     
     fetchPromise = axios.get('https://chat.qwen.ai/api/models', {
         headers: {
             'Authorization': `Bearer ${accountManager.getAccountToken()}`,
             'Content-Type': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            ...(config.ssxmodItna && { 'Cookie': `ssxmod_itna=${config.ssxmodItna}` })
+            ...(ssxmodItna && ssxmodItna2 && { 'Cookie': `ssxmod_itna=${ssxmodItna};ssxmod_itna2=${ssxmodItna2}` })
         }
     }).then(response => {
         // console.log(response)

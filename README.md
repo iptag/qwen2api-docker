@@ -41,7 +41,29 @@
 
 ## 🚀 快速开始
 
-### 方式一：Docker Compose（推荐）
+### 方式一：docker镜像拉取和更新（推荐）
+
+**拉取命令**
+```bash
+docker run -d \
+  --name qwen2api \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  -v /root/qwen2api/data:/app/data \
+  -v /root/qwen2api/.env:/app/.env:ro \
+  --env-file /root/qwen2api/.env \
+  ghcr.io/iptag/qwen2api-docker:latest
+```
+
+**更新命令**
+```bash
+docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  containrrr/watchtower \
+  --run-once qwen2api
+```
+
+### 方式二：Docker Compose
 
 #### 1. 克隆项目
 

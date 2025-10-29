@@ -1,8 +1,8 @@
 services:
   qwen2api:
     build: .
-    image: qwen2api:latest
-    container_name: qwen-api
+    image: qwen2api
+    container_name: qwen2api
     restart: unless-stopped
     ports:
       - "${SERVICE_PORT:-3000}:3000"

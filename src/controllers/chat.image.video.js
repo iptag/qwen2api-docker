@@ -6,6 +6,11 @@ const { sleep } = require('../utils/tools.js')
 const { generateChatID } = require('../utils/request.js')
 const config = require('../config/index.js')
 
+const getCookieValue = (cookieString, key) => {
+    const match = cookieString.match(new RegExp(`${key}=([^;]+)`));
+    return match ? match[1] : null;
+};
+
 /**
  * 主要的聊天完成处理函数
  * @param {object} req - Express 请求对象
@@ -61,7 +66,7 @@ const handleImageVideoCompletion = async (req, res) => {
             for (const item of messagesHistory) {
                 if (item.role == "assistant") {
                     // 使用matchAll提取所有图片链接
-                    const matches = [...item.content.matchAll(/!\[image\]\((.*?)\)/g)]
+                    const matches = [...item.content.matchAll(/!\\[image\\]\((.*?)\\) /g)]
                     // 将所有匹配到的图片url添加到图片列表
                     for (const match of matches) {
                         select_image_list.push(match[1])
@@ -145,12 +150,16 @@ const handleImageVideoCompletion = async (req, res) => {
         logger.info(`使用提示: ${reqBody.messages[0].content}`, 'CHAT')
         // console.log(JSON.stringify(reqBody))
         const newChatType = reqBody.messages[0].chat_type
+
+        const ssxmodItna = getCookieValue(config.qwenCookies, 'ssxmod_itna');
+        const ssxmodItna2 = getCookieValue(config.qwenCookies, 'ssxmod_itna2');
+
         const response_data = await axios.post(`https://chat.qwen.ai/api/v2/chat/completions?chat_id=${chat_id}`, reqBody, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                ...(config.ssxmodItna && { 'Cookie': `ssxmod_itna=${config.ssxmodItna}` })
+                ...(ssxmodItna && ssxmodItna2 && { 'Cookie': `ssxmod_itna=${ssxmodItna};ssxmod_itna2=${ssxmodItna2}` })
             },
             responseType: newChatType == 't2i' ? 'stream' : 'json',
             timeout: 1000 * 60 * 5
@@ -291,12 +300,15 @@ ${content}
 
 const getVideoTaskStatus = async (videoTaskID, token) => {
     try {
+        const ssxmodItna = getCookieValue(config.qwenCookies, 'ssxmod_itna');
+        const ssxmodItna2 = getCookieValue(config.qwenCookies, 'ssxmod_itna2');
+
         const response_data = await axios.get(`https://chat.qwen.ai/api/v1/tasks/status/${videoTaskID}`, {
             headers: {
                 "Authorization": `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                ...(config.ssxmodItna && { 'Cookie': `ssxmod_itna=${config.ssxmodItna}` })
+                ...(ssxmodItna && ssxmodItna2 && { 'Cookie': `ssxmod_itna=${ssxmodItna};ssxmod_itna2=${ssxmodItna2}` })
             }
         })
 

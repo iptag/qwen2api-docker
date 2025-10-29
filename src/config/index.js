@@ -13,7 +13,8 @@ const config = {
   enableFileLog: process.env.ENABLE_FILE_LOG === 'true',
   logDir: process.env.LOG_DIR || "./logs",
   maxLogFileSize: parseInt(process.env.MAX_LOG_FILE_SIZE) || 10,
-  maxLogFiles: parseInt(process.env.MAX_LOG_FILES) || 5
+  maxLogFiles: parseInt(process.env.MAX_LOG_FILES) || 5,
+  qwenCookies: process.env.QWEN_COOKIES || ""
 }
 
 module.exports = config
