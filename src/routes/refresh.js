@@ -61,29 +61,6 @@ router.post('/api/addAccount', apiKeyVerify, async (req, res) => {
 })
 
 /**
- * GET /api/accountsHealth
- * 获取所有账户的健康状态
- *
- * @returns {Object} 账户健康状态
- */
-router.get('/api/accountsHealth', apiKeyVerify, async (req, res) => {
-  try {
-    const healthStats = accountManager.getHealthStats()
-
-    res.json({
-      success: true,
-      data: healthStats
-    })
-  } catch (error) {
-    logger.error('获取账户健康状态失败', 'REFRESH', '', error)
-    res.status(500).json({
-      success: false,
-      error: error.message
-    })
-  }
-})
-
-/**
  * POST /api/reloadConfig
  * 手动重新加载配置文件（.env）
  *

@@ -70,6 +70,18 @@ class Account {
                 }
             })
 
+            // 清理全局定时器，防止热重载时泄漏
+            if (this.cliRequestNumberInterval) {
+                clearTimeout(this.cliRequestNumberInterval)
+                this.cliRequestNumberInterval = null
+                logger.info('清理全局 CLI 请求计数定时器', 'ACCOUNT')
+            }
+            if (this.cliDailyResetInterval) {
+                clearInterval(this.cliDailyResetInterval)
+                this.cliDailyResetInterval = null
+                logger.info('清理全局 CLI 每日重置定时器', 'ACCOUNT')
+            }
+
             this.accountTokens = await this.dataPersistence.loadAccounts()
 
             // 验证和清理无效令牌
@@ -269,18 +281,6 @@ class Account {
         return this.accountRotator.getTokenByAccountId(accountId)
     }
 
-    // 销毁方法，清除定时器
-    destroy() {
-        if (this.cliRequestNumberInterval) {
-            clearInterval(this.cliRequestNumberInterval)
-        }
-        if (this.cliDailyResetInterval) {
-            clearInterval(this.cliDailyResetInterval)
-        }
-    }
-
-
-
     /**
      * 生成 Markdown 表格
      * @param {Array} websites - 网站信息数组
@@ -331,21 +331,6 @@ class Account {
     }
 
 
-
-    /**
-     * 获取账户健康状态统计
-     * @returns {Object} 健康状态统计
-     */
-    getHealthStats() {
-        const tokenStats = this.tokenManager.getTokenHealthStats(this.accountTokens)
-        const rotatorStats = this.accountRotator.getStats()
-
-        return {
-            accounts: tokenStats,
-            rotation: rotatorStats,
-            initialized: this.isInitialized
-        }
-    }
 
     /**
      * 记录账户使用失败
@@ -443,21 +428,6 @@ class Account {
             logger.error(`移除账户失败 (${accountId})`, 'ACCOUNT', '', error)
             return false
         }
-    }
-
-    /**
-     * 删除账户（向后兼容）
-     * @param {string} accountId - 账户标识
-     * @returns {boolean} 删除是否成功
-     */
-    deleteAccount(accountId) {
-        const index = this.accountTokens.findIndex(t => t.accountId === accountId)
-        if (index !== -1) {
-            this.accountTokens.splice(index, 1)
-            this.accountRotator.setAccounts(this.accountTokens)
-            return true
-        }
-        return false
     }
 
     /**

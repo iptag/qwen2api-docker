@@ -1,3 +1,4 @@
+const crypto = require('crypto')
 const config = require('../config')
 
 /**
@@ -13,8 +14,21 @@ const validateApiKey = (providedKey) => {
   // 移除Bearer前缀
   const cleanKey = providedKey.startsWith('Bearer ') ? providedKey.slice(7) : providedKey
 
-  // 检查是否与配置的API Key匹配
-  const isValid = cleanKey === config.apiKey
+  // 使用 timingSafeEqual 防止时序攻击
+  // 需要将字符串转为 Buffer，并确保长度一致
+  let isValid = false
+  try {
+    const expectedKey = Buffer.from(config.apiKey, 'utf8')
+    const providedKeyBuffer = Buffer.from(cleanKey, 'utf8')
+
+    // timingSafeEqual 要求两个 Buffer 长度相同
+    if (expectedKey.length === providedKeyBuffer.length) {
+      isValid = crypto.timingSafeEqual(expectedKey, providedKeyBuffer)
+    }
+  } catch (error) {
+    // Buffer 转换失败或其他错误，返回 false
+    isValid = false
+  }
 
   // 当前实现不区分管理员，所有有效Key均视为管理员
   return { isValid, isAdmin: isValid }

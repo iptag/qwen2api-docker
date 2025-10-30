@@ -309,7 +309,8 @@ const getVideoTaskStatus = async (videoTaskID, token) => {
                 'Content-Type': 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 ...(ssxmodItna && ssxmodItna2 && { 'Cookie': `ssxmod_itna=${ssxmodItna};ssxmod_itna2=${ssxmodItna2}` })
-            }
+            },
+            timeout: 30 * 1000 // 30秒超时
         })
 
         if (response_data.data?.task_status == "success") {

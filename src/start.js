@@ -28,12 +28,14 @@ process.on('SIGINT', () => {
 })
 
 // 未捕获的异常处理
+// 注意：不直接退出进程，避免单个错误导致生产环境完全停机
+// 应配合进程监控工具（PM2/systemd/Docker restart policy）处理严重故障
 process.on('uncaughtException', (error) => {
   logger.error('未捕获的异常', 'START', '', error)
-  process.exit(1)
+  // 移除 process.exit(1) - 记录错误但保持服务运行
 })
 
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('未处理的Promise拒绝', 'START', '', reason)
-  process.exit(1)
+  // 移除 process.exit(1) - 防止 Promise 错误导致服务中断
 })

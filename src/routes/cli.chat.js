@@ -19,7 +19,7 @@ router.post('/cli/v1/chat/completions',
 
         // 获取当前可用的CLI账户用于本次请求
         const availableAccounts = accountManager.accountTokens.filter(account =>
-            account.cli_info && account.cli_info.request_number < 2000
+            account.cli_info && account.cli_info.request_number < 2000 && !account.locked
         )
 
         if (availableAccounts.length === 0) {
@@ -30,7 +30,21 @@ router.post('/cli/v1/chat/completions',
 
         // 随机选择一个可用账户用于本次请求
         const randomAccount = availableAccounts[Math.floor(Math.random() * availableAccounts.length)]
+        
+        // 锁定账户
+        randomAccount.locked = true
+
         req.account = randomAccount
+
+        // 确保在请求结束后解锁账户
+        res.on('finish', () => {
+            randomAccount.locked = false
+        });
+
+        res.on('close', () => {
+            randomAccount.locked = false
+        });
+        
         next()
     },
     handleCliChatCompletion

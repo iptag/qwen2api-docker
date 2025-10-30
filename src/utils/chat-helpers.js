@@ -47,7 +47,9 @@ const isThinkingEnabled = (model, enable_thinking, thinking_budget) => {
         thinking_config.thinking_enabled = true
     }
 
-    if (thinking_budget && Number(thinking_budget) !== Number.NaN && Number(thinking_budget) > 0 && Number(thinking_budget) < 38912) {
+    // 修复：Number.NaN 是 undefined，NaN !== NaN 永远为 true
+    // 使用 isNaN() 正确检查是否为 NaN
+    if (thinking_budget && !isNaN(Number(thinking_budget)) && Number(thinking_budget) > 0 && Number(thinking_budget) < 38912) {
         thinking_config.budget = Number(thinking_budget)
     }
 
@@ -101,7 +103,14 @@ const parserMessages = async (messages, thinking_config, chat_type) => {
 
                 const newContent = []
 
-                for (let item of message.content) {
+                // 收集所有需要上传的图片任务（并行上传优化）
+                const uploadTasks = []
+                const itemIndexMap = new Map() // 记录 item 和原始索引的映射
+
+                // 第一遍：处理缓存命中和收集上传任务
+                for (let i = 0; i < message.content.length; i++) {
+                    const item = message.content[i]
+
                     if (item.type === 'image' || item.type === 'image_url') {
                         let base64 = null
                         if (item.type === 'image_url') {
@@ -109,7 +118,6 @@ const parserMessages = async (messages, thinking_config, chat_type) => {
                         }
                         if (base64) {
                             const regex = /data:(.+);base64,/
-                            // 截取文本
                             const fileType = base64.match(regex)
                             const fileExtension = fileType && fileType[1] ? fileType[1].split('/')[1] || 'png' : 'png'
                             const filename = `${generateUUID()}.${fileExtension}`
@@ -119,24 +127,27 @@ const parserMessages = async (messages, thinking_config, chat_type) => {
                             try {
                                 const buffer = Buffer.from(base64, 'base64')
                                 const cacheIsExist = imgCacheManager.cacheIsExist(signature)
+
                                 if (cacheIsExist) {
+                                    // 缓存命中，直接使用
                                     delete item.image_url
                                     item.type = 'image'
                                     item.image = imgCacheManager.getCache(signature).url
                                     newContent.push(item)
                                 } else {
-                                    const uploadResult = await uploadFileToQwenOss(buffer, filename, accountManager.getAccountToken())
-                                    if (uploadResult && uploadResult.status === 200) {
-                                        delete item.image_url
-                                        item.type = 'image'
-                                        item.image = uploadResult.file_url
-                                        imgCacheManager.addCache(signature, uploadResult.file_url)
-                                        newContent.push(item)
-                                    }
+                                    // 缓存未命中，创建上传任务
+                                    itemIndexMap.set(uploadTasks.length, { item, signature })
+                                    uploadTasks.push(
+                                        uploadFileToQwenOss(buffer, filename, accountManager.getAccountToken())
+                                            .then(uploadResult => ({ success: true, uploadResult, signature, item }))
+                                            .catch(error => {
+                                                logger.error('图片上传失败', 'UPLOAD', '', error)
+                                                return { success: false, error, item }
+                                            })
+                                    )
                                 }
-
                             } catch (error) {
-                                logger.error('图片上传失败', 'UPLOAD', '', error)
+                                logger.error('图片处理失败', 'UPLOAD', '', error)
                             }
                         }
                     } else if (item.type === 'text') {
@@ -162,6 +173,31 @@ const parserMessages = async (messages, thinking_config, chat_type) => {
                         }
 
                     }
+                }
+
+                // 第二遍：并行等待所有图片上传完成
+                if (uploadTasks.length > 0) {
+                    logger.info(`并行上传 ${uploadTasks.length} 张图片`, 'UPLOAD', '📤')
+                    const uploadResults = await Promise.all(uploadTasks)
+
+                    // 处理上传结果
+                    for (const result of uploadResults) {
+                        if (result.success && result.uploadResult && result.uploadResult.status === 200) {
+                            delete result.item.image_url
+                            result.item.type = 'image'
+                            result.item.image = result.uploadResult.file_url
+                            imgCacheManager.addCache(result.signature, result.uploadResult.file_url)
+                            newContent.push(result.item)
+                            logger.success('图片上传成功', 'UPLOAD')
+                        } else {
+                            logger.error('图片上传失败，跳过该图片', 'UPLOAD')
+                        }
+                    }
+                }
+
+                // 更新消息内容
+                if (newContent.length > 0) {
+                    message.content = newContent
                 }
             } else {
                 if (Array.isArray(message.content)) {

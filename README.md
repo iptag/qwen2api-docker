@@ -52,7 +52,6 @@ docker run -d \
   -v /root/qwen2api/data:/app/data \
   -v /root/qwen2api/.env:/app/.env:ro \
   --env-file /root/qwen2api/.env \
-  --no-healthcheck \
   ghcr.io/iptag/qwen2api-docker:latest
 ```
 
@@ -69,7 +68,7 @@ docker run --rm \
 #### 1. 克隆项目
 
 ```bash
-git clone https://github.com/yourusername/qwen2api.git
+git clone https://github.com/project-owner/qwen2api.git
 cd qwen2api
 ```
 
@@ -199,7 +198,6 @@ npm start
 | **模型** | `/models` | GET | ❌ | 获取模型列表（公开端点） |
 | **模型** | `/cli/v1/models` | POST | ❌ | 获取 CLI 模型列表 |
 | **账户** | `/api/addAccount` | POST | ✅ | 添加新账户 |
-| **账户** | `/api/accountsHealth` | GET | ✅ | 查看账户健康状态 |
 | **配置** | `/api/reloadConfig` | POST | ✅ | 手动重载配置 |
 | **配置** | `/api/configStatus` | GET | ✅ | 获取配置状态 |
 | **验证** | `/verify` | POST | ❌ | 验证 API Key |
@@ -527,60 +525,6 @@ curl -X POST http://localhost:3000/api/addAccount \
 
 ---
 
-### 3.2 查看账户健康状态
-
-**端点**: `GET /api/accountsHealth`
-
-**认证**: 需要 API Key
-
-**功能**: 获取所有账户的健康状态和统计信息
-
-**请求示例**:
-
-```bash
-curl http://localhost:3000/api/accountsHealth \
-  -H "Authorization: Bearer sk-your-secret-key"
-```
-
-**响应示例**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "totalAccounts": 3,
-    "healthyAccounts": 2,
-    "unhealthyAccounts": 1,
-    "accounts": [
-      {
-        "accountId": "account_1",
-        "isHealthy": true,
-        "failureCount": 0,
-        "lastUsed": "2025-10-03T12:00:00.000Z",
-        "hasCliInfo": true,
-        "cliRequestNumber": 150
-      },
-      {
-        "accountId": "account_2",
-        "isHealthy": true,
-        "failureCount": 0,
-        "lastUsed": "2025-10-03T11:50:00.000Z",
-        "hasCliInfo": false
-      },
-      {
-        "accountId": "account_3",
-        "isHealthy": false,
-        "failureCount": 5,
-        "lastUsed": "2025-10-03T10:00:00.000Z",
-        "hasCliInfo": false
-      }
-    ]
-  }
-}
-```
-
----
-
 ## 4️⃣ 配置管理接口
 
 ### 4.1 手动重载配置
@@ -610,11 +554,6 @@ curl -X POST http://localhost:3000/api/reloadConfig \
       "lastReload": "2025-10-03T12:00:00.000Z",
       "isWatching": true,
       "envPath": "/app/.env"
-    },
-    "accountsHealth": {
-      "totalAccounts": 2,
-      "healthyAccounts": 2,
-      "unhealthyAccounts": 0
     }
   }
 }
@@ -826,7 +765,7 @@ curl -X POST http://localhost:3000/cli/v1/chat/completions \
 ### 2. 如何查看账户状态？
 
 ```bash
-curl http://localhost:3000/api/health \
+curl http://localhost:3000/api/accountsHealth \
   -H "Authorization: Bearer sk-your-secret-key"
 ```
 
@@ -870,13 +809,6 @@ curl -X POST http://localhost:3000/api/addAccount \
   -H "Authorization: Bearer sk-your-secret-key" \
   -H "Content-Type: application/json" \
   -d '{"num": "3", "cookie": "token=xxx; ssxmod_itna=yyy"}'
-```
-
-### 5. 如何删除cookie？
-
-```bash
-curl -X DELETE http://localhost:3000/api/deleteAccount/3 \
-  -H "Authorization: Bearer sk-your-secret-key"
 ```
 
 ---

@@ -3,11 +3,15 @@ node_modules
 
 # 环境配置（敏感信息）
 .env
+CLAUDE.md
+.claude/
 
 # 运行时数据
 data/data.json
 data/*.db
 caches
+dist/
+build/
 
 # 日志
 logs/

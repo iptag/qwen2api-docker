@@ -19,9 +19,8 @@ RUN mkdir -p logs caches data
 # 暴露端口（通过环境变量 SERVICE_PORT 控制，默认 3000）
 EXPOSE 3000
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
 
 # 启动应用
+
 CMD ["node", "src/start.js"]

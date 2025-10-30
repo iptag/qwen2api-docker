@@ -333,7 +333,7 @@ const handleChatCompletion = async (req, res) => {
         logger.error('聊天处理错误', 'CHAT', '', error)
         res.status(500)
             .json({
-                error: "token无效,请求发送失败！！！"
+                error: `请求发送失败: ${error.message}`
             })
     }
 }
